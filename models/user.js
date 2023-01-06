@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+
 const userSchema = mongoose.Schema(
   {
     email: {
       type: String,
       required: true,
-      unique: true,
+      minlength: [5, "email should be longer than 5 characters"],
     },
     username: {
       type: String,
@@ -15,7 +16,6 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: [8, "password should be longer than 8 characters"],
     },
     role: {
       type: String,
@@ -23,7 +23,7 @@ const userSchema = mongoose.Schema(
       default: "User",
     },
   },
-  { timestamps: true}
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("User", userSchema);
