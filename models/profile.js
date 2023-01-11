@@ -17,9 +17,8 @@ const profileSchema = mongoose.Schema(
       type: String,
     },
     username: {
-      type: String,
-      required: true,
-      unique: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     gender: {
       type: String,
@@ -63,6 +62,11 @@ const profileSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+
+    post:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+    }
   },
   { timestamps: true }
 );
