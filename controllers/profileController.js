@@ -1,5 +1,6 @@
 const Profile = require("../models/profile");
-// const Post = require("../routes/profile-routes");
+const upload = require("../middleware/upload");
+const post = require("../models/post");
 
 const getAllProfile = (req, res, next) => {
   Profile.find()
@@ -9,18 +10,15 @@ const getAllProfile = (req, res, next) => {
     .catch(next);
 };
 
-const createProfile = (req, res, next) => {
-  let profile = {
-    ...req.body,
-    image: req.file.filename,
-    user: req.user.userId,
-  };
-  Profile.create(profile)
-    .then((profile) => {
-      res.status(201).json(profile);
-    })
-    .catch(next);
-};
+const createProfile =
+  (upload.single("profile"),
+  (req, res, next) => {
+    Profile.create(req.body)
+      .then((profile) => {
+        res.status(201).json(profile);
+      })
+      .catch(next);
+  });
 
 const updateProfile = (req, res, next) => {
   res.status(501).json({ reply: "PUT request not supported" });
@@ -37,6 +35,7 @@ const deleteProfile = (req, res, next) => {
 
 const getProfileByID = (req, res, next) => {
   Profile.findById(req.params.id)
+  .populate("post")
     .then((profile) => {
       res.json(profile);
     })

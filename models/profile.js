@@ -29,7 +29,6 @@ const profileSchema = mongoose.Schema(
     },
     DOB: {
       type: String,
-      required: true,
     },
     closeFriends: {
       type: mongoose.Schema.Types.ObjectId,
@@ -63,10 +62,10 @@ const profileSchema = mongoose.Schema(
       ref: "User",
     },
 
-    post:{
+    post:[{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
-    }
+    }],
   },
   { timestamps: true }
 );
