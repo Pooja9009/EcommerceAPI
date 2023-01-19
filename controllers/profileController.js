@@ -4,6 +4,7 @@ const post = require("../models/post");
 
 const getAllProfile = (req, res, next) => {
   Profile.find()
+  .populate("user")
     .then((profiles) => {
       res.json(profiles);
     })
@@ -13,7 +14,11 @@ const getAllProfile = (req, res, next) => {
 const createProfile =
   (upload.single("profile"),
   (req, res, next) => {
-    Profile.create(req.body)
+    let profile = {
+      ...req.body,
+      // user:req.user.userId,
+    }
+    Profile.create(profile)
       .then((profile) => {
         res.status(201).json(profile);
       })

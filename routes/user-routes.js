@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/register", (req, res, next) => {
   User.findOne({ username: req.body.username })
-    .then((user) => {
+    .then(user => {
       if (user != null) {
         let err = new Error(`User ${req.body.username} already exists`);
         res.status(404);
@@ -28,6 +28,7 @@ router.post("/register", (req, res, next) => {
               userId: user._id,
               username: user.username,
               role: user.role,
+              post: user.post,
             });
           })
           .catch(next);
@@ -68,5 +69,6 @@ router.post("/login", (req, res, next) => {
     });
   });
 });
+
 
 module.exports = router;

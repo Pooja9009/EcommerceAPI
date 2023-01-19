@@ -6,9 +6,13 @@ const postSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  profile: {
+  // profile: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Profile",
+  // },
+  user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Profile",
+    ref: "User",
   },
   caption: {
     type: String,
@@ -27,10 +31,6 @@ const postSchema = new mongoose.Schema({
   comment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Comment",
-  },
-  profile: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Profile",
   },
 });
 module.exports = mongoose.model("post", postSchema);

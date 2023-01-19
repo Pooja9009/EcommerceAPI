@@ -7,15 +7,15 @@ const path = require("path");
 const auth = require("./middleware/auth")
 const { application } = require("express");
 const user_routes = require("./routes/user-routes");
-const profile_routes = require('./routes/profile-routes')
-const post_routes = require('./routes/post-routes')
+// const profile_routes = require('./routes/profile-routes')
+// const post_routes = require('./routes/post-routes')
 // const
 
 const app = express();
 const port = 3000;
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/books-pooja")
+  .connect("mongodb://127.0.0.1:27017/techies_db")
   .then(() => {
     console.log("Connected to mongoDB server");
     app.listen(port, () => {
@@ -43,8 +43,10 @@ app.get("^/$|/index(.html)?", (req, res) => {
 // Router level
 app.use("/user", user_routes);
 // app.use(auth.verifyUser);
-app.use('/profile',auth.verifyUser,profile_routes)
-app.use('/post',auth.verifyUser,post_routes)
+// app.use('/profile',auth.verifyUser, profile_routes)
+// app.use('/post',auth.verifyUser,post_routes)
+// app.use('/profile', profile_routes)
+// app.use('/post',post_routes)
 
 
 // Error handling
@@ -54,5 +56,3 @@ app.use((err, req, res, next) => {
   res.json({"msg":err.message})
   });
 // });
-
-
