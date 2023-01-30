@@ -1,98 +1,72 @@
-const Post = require("../models/post");
+const Comment = require('../models/Comment');
+const catchAsync = require('../utils/catchAsync');
+const Post = require('../models/Post');
+const AppError = require('../utils/appError');
+//const getProfileId = require("../utils/profile");
 
-const getAllComment = (req, res, next) => {
-  Post.find(req.params.id)
-    .then((post) => {
-      res.status(200).json(post.comment);
-    })
-    .catch(next);
+//check post is in db
+exports.checkPost = async (req, res, next) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) {
+    return next(new AppError('Post not available', 400));
+  }
+  next();
 };
 
-const createComment = (req, res, next) => {
-  Post.findById(req.params.id)
-    .then((post) => {
-      // change this to have commenter id as well
-      let comment = {
-        body: req.body.body,
-        commenter: req.user.userId,
-      };
-      console.log(req.body);
-      console.log(req.user);
-      post.comment.push(comment);
-      post.save().then((b) => res.status(201).json(b.comment));
-    })
-    .catch(next);
-};
+//comment to a post
 
-const deleteAllComment = (req, res, next) => {
-  Post.findById(req.params.id)
-    .then((post) => {
-      post.comment = [];
-      post.save().then((b = res.json(b.comment)));
-    })
-    .catch(next);
-};
+exports.addComment = catchAsync(async (req, res, next) => {
+  const id = req.profile;
 
-const getCommentById = (req, res, next) => {
-  Post.findById(req.params.id)
-    .then((post) => {
-      let comment = post.comment.find(
-        (item) => item.id == req.params.comment_id
-      );
-      res.json(comment);
-    })
-    .catch(next);
-};
+  const comment = await Comment.create({
+    user: req.user.id,
+    profile: id,
+    post: req.params.id,
+    ...req.body,
+  });
 
-const updateCommentById = (req, res, next) => {
-  Post.findById(req.params.id)
-    .then((post) => {
-      let comment = post.comment.id(req.params.comment_id);
-      if (comment.commenter != req.user.userId) {
-        res.status(403);
-        return next(new Error("Not authorized"));
-      }
+  res.status(200).json({
+    status: 'success',
+    comment,
+  });
+});
 
-      let updatecomment = post.comment.map((item) => {
-        if (item.id == req.params.comment_id) {
-          if (item.commenter == req.user.userId) item.body = req.body.body;
-        }
-        return item;
-      });
-      post.comment = updatecomment;
-      post.save().then((b) => res.json(b.comment));
-    })
-    .catch(next);
-};
+//like comment
+exports.likeComment = catchAsync(async (req, res, next) => {
+  const id = req.profile;
 
-const deleteommentbyId = (req, res, next) => {
-  Post.findById(req.params.post_id)
-    .then((post) => {
-      let comment = post.comment.id(req.paras.comment_id);
-      if (comment == null) {
-        res.status(404);
-        return next(new Error("Not found"));
-      }
-      if (comment.commenter != req.user.id) {
-        res.status(403);
-        return next(new Error("Not authorized"));
-      }
-      post.comment = post.comment.filter(
-        (comment) => comment.id !== req.params.comment_id
-      );
-      post
-        .save()
-        .then((post) => res.json(post.comment))
-        .catch(next);
-    })
-    .catch(next);
-};
+  const comment = await Comment.findById(req.params.id);
 
-module.exports = {
-  getAllComment,
-  createComment,
-  deleteAllComment,
-  getCommentById,
-  updateCommentById,
-  deleteommentbyId,
-};
+  if (!comment) {
+    return next(new AppError('Comment not found', 400));
+  }
+
+  const checkLike = comment.likes.findIndex(
+    (like) => like._id.toString() === id.toString()
+  );
+
+  if (checkLike >= 0) {
+    comment.likes.splice(checkLike, 1);
+    await comment.save();
+  } else {
+    comment.likes.unshift(id);
+    await comment.save();
+  }
+
+  res.status(200).json({
+    status: 'success',
+  });
+});
+
+//delete comment
+
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const comment = await Comment.findById(req.params.commentId);
+  return comment.user.toString() === req.user.id.toString()
+    ? (await comment.remove(),
+      res.json({
+        status: 'success',
+      }))
+    : next(new AppError('You are not authorized to delete this comment', 401));
+});

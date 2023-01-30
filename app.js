@@ -1,58 +1,54 @@
-require('dotenv').config()
-const express = require("express");
-const mongoose = require("mongoose");
-// const logger = require("./logger");
-
-const path = require("path");
-const auth = require("./middleware/auth")
-const { application } = require("express");
-const user_routes = require("./routes/user-routes");
-// const profile_routes = require('./routes/profile-routes')
-// const post_routes = require('./routes/post-routes')
-// const
+const express = require('express');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+//const fileUpload = require("express-fileupload");
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const app = express();
-const port = 3000;
 
-mongoose
-  .connect("mongodb://127.0.0.1:27017/techies_db")
-  .then(() => {
-    console.log("Connected to mongoDB server");
-    app.listen(port, () => {
-      console.log(`App is running on port: ${port}`);
-    });
-  })
-  .catch((err) => next(err));
+const cloudinary = require('./utils/cloudinary');
 
-// Logger
-// 1.Application Level Midlleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
+const userRoute = require('./routes/user');
+const profileRoute = require('./routes/profile');
+const postRoute = require('./routes/Post');
+const bookmarkRoute = require('./routes/bookmark');
+const commentRoute = require('./routes/comment');
+const groupRoute = require('./routes/group');
 
-// Express defined
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorHandler/error');
+
+//^morgan
+// if (process.env.NODE_ENV === 'development') {
+//   app.use(morgan('dev'));
+// }
+
 app.use(express.json());
+//app.use(fileUpload())
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: 'http://localhost:3000/',
+  })
+);
+cloudinary();
 
-// Home Page
-app.get("^/$|/index(.html)?", (req, res) => {
-  // res.send("Hello world")
-  res.sendFile(path.join(__dirname, "views", "index.html"));
+//~routes
+app.use('/users', userRoute);
+app.use('/profile', profileRoute);
+app.use('/post', postRoute);
+app.use('/bookmark', bookmarkRoute);
+app.use('/comment', commentRoute);
+app.use('/group', groupRoute);
+
+app.all('*', (req, res, next) => {
+  next(new AppError(`can't find ${req.originalUrl} on this server`, 404));
 });
 
-// Router level
-app.use("/user", user_routes);
-// app.use(auth.verifyUser);
-// app.use('/profile',auth.verifyUser, profile_routes)
-// app.use('/post',auth.verifyUser,post_routes)
-// app.use('/profile', profile_routes)
-// app.use('/post',post_routes)
+//^global error handler
+app.use(globalErrorHandler);
 
-
-// Error handling
-app.use((err, req, res, next) => {
-  console.log(err.stack)
-  if (res.statusCode == 200)res.status(500)
-  res.json({"msg":err.message})
-  });
-// });
+module.exports = app;
